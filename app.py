@@ -602,15 +602,15 @@ def project_point_to_slice(point_3d, target_slice_geometry):
     return pixel_col, pixel_row
 
 def draw_line(ori_img_path, user):
-    key  = ori_img_path.replace('results/sagittal/', '')
+    key  = ori_img_path.split('/')[-1].replace('.jpg', '').split('_')[0]
     sag_geom = desanitize_geom(user['geom']['sagittal'][key])
     axi_geoms = user['geom']['axial']
 
     sag_img_array = cv2.imread(ori_img_path, cv2.IMREAD_GRAYSCALE)
     img_height, img_width = sag_img_array.shape
 
-    for i, axi_geom in enumerate(sorted(axi_geoms.values())):
-        axi_geom = desanitize_geom(axi_geom)
+    for i, key in enumerate(sorted(axi_geoms.keys())):
+        axi_geom = desanitize_geom(axi_geoms[key])
 
         ipp_axi = axi_geom["ipp"]
         iop_row_axi = axi_geom["iop_row"]

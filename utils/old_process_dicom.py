@@ -82,9 +82,10 @@ def merge_boxes(boxes, iou_threshold=0.8):
 def draw_and_save_result(image_path, boxes, output_filename):
     img = cv2.imread(image_path)
     boxes = sorted(boxes, key=lambda x: x[1])
-    cv2.imwrite(output_filename, img)
+    for i, box in enumerate(boxes):
+        x1, y1, x2, y2 = box
+        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    for i in range(len(boxes)):
         view_img = cv2.imread(image_path)
         for j, box2 in enumerate(boxes):
             x1, y1, x2, y2 = box2
@@ -95,6 +96,7 @@ def draw_and_save_result(image_path, boxes, output_filename):
         filename = output_filename.split('.')[0]
         ext = output_filename.split('.')[1]
         cv2.imwrite(f"{filename}_view_{i}.{ext}", view_img)
+    cv2.imwrite(output_filename, img)
 
 def crop_yolo_dataset(image_path: str, output_dir: str, coordinates: array, padding_percent: int, classification: str, arr_models: array):
     if not os.path.exists(output_dir):
