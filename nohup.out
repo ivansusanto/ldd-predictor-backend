@@ -1,0 +1,34 @@
+[2025-05-28 05:37:59 +0700] [16144] [INFO] Starting gunicorn 23.0.0
+[2025-05-28 05:37:59 +0700] [16144] [INFO] Listening at: http://127.0.0.1:5000 (16144)
+[2025-05-28 05:37:59 +0700] [16144] [INFO] Using worker: sync
+[2025-05-28 05:37:59 +0700] [16147] [INFO] Booting worker with pid: 16147
+[2025-05-28 05:37:59 +0700] [16148] [INFO] Booting worker with pid: 16148
+[2025-05-28 05:37:59 +0700] [16159] [INFO] Booting worker with pid: 16159
+[2025-05-28 05:37:59 +0700] [16160] [INFO] Booting worker with pid: 16160
+[2025-05-28 05:45:05 +0700] [16144] [INFO] Handling signal: hup
+[2025-05-28 05:45:05 +0700] [16144] [INFO] Hang up: Master
+[2025-05-28 05:45:05 +0700] [16501] [INFO] Booting worker with pid: 16501
+[2025-05-28 05:45:05 +0700] [16502] [INFO] Booting worker with pid: 16502
+[2025-05-28 05:45:05 +0700] [16503] [INFO] Booting worker with pid: 16503
+[2025-05-28 05:45:05 +0700] [16504] [INFO] Booting worker with pid: 16504
+[2025-05-28 05:45:05 +0700] [16144] [ERROR] Worker (pid:16159) was sent SIGHUP!
+[2025-05-28 05:45:05 +0700] [16144] [ERROR] Worker (pid:16147) was sent SIGHUP!
+[2025-05-28 05:45:05 +0700] [16144] [ERROR] Worker (pid:16148) was sent SIGHUP!
+[2025-05-28 05:45:05 +0700] [16144] [ERROR] Worker (pid:16160) was sent SIGHUP!
+[2025-05-28 05:46:25,739] ERROR in app: Exception on /upload [POST]
+Traceback (most recent call last):
+  File "/home/ivan/Documents/Website/backend/venv/lib/python3.10/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ivan/Documents/Website/backend/venv/lib/python3.10/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ivan/Documents/Website/backend/venv/lib/python3.10/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/home/ivan/Documents/Website/backend/venv/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ivan/Documents/Website/backend/venv/lib/python3.10/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/home/ivan/Documents/Website/backend/middleware.py", line 31, in wrapper
+    return f(*args, **kwargs)
+  File "/home/ivan/Documents/Website/backend/app.py", line 200, in upload_file
+    series_path = file_name.split("\\")[-3]
+IndexError: list index out of range

@@ -205,3 +205,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# To keep folder uploads and results tracked on git
+uploads/*
+!uploads/.gitkeep
+results/*
+!results/.gitkeep
+
+# To keep folder models tracked on git
+models/*
+!models/.gitkeep
