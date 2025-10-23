@@ -15,6 +15,10 @@ import bcrypt
 import jwt
 import datetime
 from middleware import token_required
+import cv2
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 UPLOAD_FOLDER = 'uploads'
 RESULT_FOLDER = 'results'
@@ -211,16 +215,6 @@ def upload_file():
                 if not geom["valid"]:
                     return jsonify({'message': 'Invalid dicom file info'}), 400
 
-                def sanitize_geom(geom):
-                    sanitized = {}
-                    for k, v in geom.items():
-                        if isinstance(v, np.ndarray):
-                            sanitized[k] = v.tolist()
-                        elif isinstance(v, np.generic):
-                            sanitized[k] = v.item()
-                        else:
-                            sanitized[k] = v
-                    return sanitized
                 geom = sanitize_geom(geom)
 
                 if is_t2_sag:
@@ -315,6 +309,10 @@ def process_result_sagittal(id, series):
 
     boxes = process_dicom_file(sagittal, 'sagittal', models)
     class_result = crop_yolo_dataset(sagittal, os.path.join(result_dir, 'sagittal'), boxes, 30, 'pfirrmann', models)
+    
+    result_path = sagittal.replace('uploads/', 'results/')
+    draw_line(result_path, user)
+    
     sag_filename = sagittal.split('/')[-1]
     result_sagittal = {
         'result': f'{HOST}/images/{id}/{series}/sagittal/{sag_filename}/results',
@@ -561,6 +559,88 @@ def get_geometry_info(ds):
         }
     except Exception as e:
         return {"valid": False, "error": str(e)}
+
+def sanitize_geom(geom):
+    sanitized = {}
+    for k, v in geom.items():
+        if isinstance(v, np.ndarray):
+            sanitized[k] = v.tolist()
+        elif isinstance(v, np.generic):
+            sanitized[k] = v.item()
+        else:
+            sanitized[k] = v
+    return sanitized
+
+def desanitize_geom(geom):
+    desanitized = {}
+    for k, v in geom.items():
+        if isinstance(v, list) and all(isinstance(i, (int, float)) for i in v):
+            desanitized[k] = np.array(v, dtype=np.float32)
+        elif isinstance(v, (int, float)):
+            desanitized[k] = np.array(v)
+        else:
+            desanitized[k] = v
+    return desanitized
+
+def project_point_to_slice(point_3d, target_slice_geometry):
+    ipp_target = target_slice_geometry["ipp"]
+    iop_row_target = target_slice_geometry["iop_row"]
+    iop_col_target = target_slice_geometry["iop_col"]
+    ps_target = target_slice_geometry["ps"]
+
+    vec_p = point_3d - ipp_target
+
+    dist_along_y = np.dot(vec_p, iop_col_target)
+    dist_along_x = np.dot(vec_p, iop_row_target)
+
+    pixel_row = dist_along_y / ps_target[0]
+    pixel_col = dist_along_x / ps_target[1]
+
+    if not np.isfinite(pixel_col) or not np.isfinite(pixel_row):
+        return None
+
+    return pixel_col, pixel_row
+
+def draw_line(ori_img_path, user):
+    key  = ori_img_path.replace('results/sagittal/', '')
+    sag_geom = desanitize_geom(user['geom']['sagittal'][key])
+    axi_geoms = user['geom']['axial']
+
+    sag_img_array = cv2.imread(ori_img_path, cv2.IMREAD_GRAYSCALE)
+    img_height, img_width = sag_img_array.shape
+
+    for i, axi_geom in enumerate(sorted(axi_geoms.values())):
+        axi_geom = desanitize_geom(axi_geom)
+
+        ipp_axi = axi_geom["ipp"]
+        iop_row_axi = axi_geom["iop_row"]
+        iop_col_axi = axi_geom["iop_col"]
+        ps_axi = axi_geom["ps"]
+        rows_axi = axi_geom["rows"]
+        cols_axi = axi_geom["cols"]
+
+        half_width_vec = iop_row_axi * ps_axi[1] * (cols_axi - 1) / 2
+        half_height_vec = iop_col_axi * ps_axi[0] * (rows_axi - 1) / 2
+        center_axi = ipp_axi + half_width_vec + half_height_vec
+        mid_top = center_axi - half_height_vec
+        mid_bottom = center_axi + half_height_vec
+
+        p_mt = project_point_to_slice(mid_top, sag_geom)
+        p_mb = project_point_to_slice(mid_bottom, sag_geom)
+
+        fig, ax = plt.subplots(figsize=(8, 8 * img_height / img_width))
+        ax.imshow(sag_img_array, cmap='gray', aspect='equal')
+
+        if p_mt and p_mb:
+            ax.plot([p_mt[0], p_mb[0]], [p_mt[1], p_mb[1]], color='cyan', linestyle='-', linewidth=1.5)
+
+        ax.axis('off')
+        ax.set_xlim(0, img_width - 1)
+        ax.set_ylim(img_height - 1, 0)
+
+        output_path = ori_img_path.replace('.jpg', f'_line_{str(i + 1).zfill(3)}.jpg')
+        fig.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=150)
+        plt.close(fig)
 
 @app.route('/', methods=['GET'])
 def hello_world():
