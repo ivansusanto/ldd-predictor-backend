@@ -311,7 +311,7 @@ def process_result_sagittal(id, series):
     class_result = crop_yolo_dataset(sagittal, os.path.join(result_dir, 'sagittal'), boxes, 30, 'pfirrmann', models)
     
     result_path = sagittal.replace('uploads/', 'results/')
-    draw_line(result_path, user)
+    axi_total_count = draw_line(result_path, user)
     
     sag_filename = sagittal.split('/')[-1]
     result_sagittal = {
@@ -319,6 +319,10 @@ def process_result_sagittal(id, series):
         'view': [
             f'{HOST}/images/{id}/{series}/sagittal/{sag_filename.split(".")[0]}_view_{i}.jpg/results'
             for i in range(len(class_result))
+        ],
+        'line': [
+            f'{HOST}/images/{id}/{series}/sagittal/{sag_filename.split(".")[0]}_line_{i}.jpg/results'
+            for i in axi_total_count
         ],
         'cropped': [
             {
@@ -638,9 +642,11 @@ def draw_line(ori_img_path, user):
         ax.set_xlim(0, img_width - 1)
         ax.set_ylim(img_height - 1, 0)
 
-        output_path = ori_img_path.replace('.jpg', f'_line_{str(i + 1).zfill(3)}.jpg')
+        output_path = ori_img_path.replace('.jpg', f'_line_{str(i).zfill(3)}.jpg')
         fig.savefig(output_path, bbox_inches='tight', pad_inches=0, dpi=150)
         plt.close(fig)
+
+    return len(sorted(axi_geoms.keys()))
 
 @app.route('/', methods=['GET'])
 def hello_world():
