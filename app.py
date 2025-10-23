@@ -321,7 +321,7 @@ def process_result_sagittal(id, series):
             for i in range(len(class_result))
         ],
         'line': [
-            f'{HOST}/images/{id}/{series}/sagittal/{sag_filename.split(".")[0]}_line_{i}.jpg/results'
+            f'{HOST}/images/{id}/{series}/sagittal/{sag_filename.split(".")[0]}_line_{str(i).zfill(3)}.jpg/results'
             for i in range(axi_total_count)
         ],
         'cropped': [
