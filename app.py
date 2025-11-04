@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 UPLOAD_FOLDER = 'uploads'
 RESULT_FOLDER = 'results'
 HOST = 'https://cool-narwhal-genuinely.ngrok-free.app'
-ADMIN_PASSWORD_HASHED=b'$2b$12$X411NczuZxdBU1NH35JC2e8Dq7zXq2h.KDAsgJz4RnJ.QvN1JMK3.' # ISTTSxUdayana
+ADMIN_PASSWORD_HASHED=b'$2b$12$X411NczuZxdBU1NH35JC2e8Dq7zXq2h.KDAsgJz4RnJ.QvN1JMK3.'
 SECRET_KEY = 'ISTTSxUdayanaProject'
 
 app = Flask(__name__)
@@ -504,7 +504,10 @@ def get_user_history_detail(history_id):
         'cropped': [{'url': f"{HOST}/{y['url']}", 'result': y['result']} for y in x['cropped']]
     } for x in data['axial']]
 
-    return jsonify(matched_history['data']), 200
+    data['patient_id'] = matched_history.get('patient_id', '')
+    data['patient_name'] = matched_history.get('patient_name', '')
+
+    return jsonify(data), 200
 
 def get_filename_paths(dir, view, search):
     for file in os.listdir(os.path.join(dir, view)):
