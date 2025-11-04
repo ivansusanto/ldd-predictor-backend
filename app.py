@@ -108,6 +108,8 @@ def register():
         'username': username,
         'password': hashed_pw,
         'models': 'sagittal-disc-YOLOv11_v4|axial-spinal-cord-YOLOv11_v3|pfirrmann-Inception-V3-C_v1|schizas-EfficientViT-L2-C_v1',
+        'last_patient_id': '',
+        'last_patient_name': '',
         'geom': [],
         'history': []
     }
@@ -189,6 +191,9 @@ def upload_file():
             
             dicom_image = pydicom.dcmread(os.path.join(dicom_path, file_name), force=True)
 
+            patient_id = dicom_image.get("PatientID", "")
+            patient_name = str(dicom_image.get("PatientName", ""))
+
             desc = dicom_image.get("SeriesDescription", "").lower()
             modality = dicom_image.get("Modality", "")
             is_t2_sag = "t2_tse_sag" in desc
@@ -228,6 +233,8 @@ def upload_file():
             { 'username': request.user['username'] },
             {
                 '$set': {
+                    'last_patient_id': patient_id,
+                    'last_patient_name': patient_name,
                     'models': models,
                     'geom': {
                         'sagittal': geom_sag,
@@ -353,6 +360,8 @@ def process_result_sagittal(id, series):
             '$push': {
                 'history': {
                     'id': id,
+                    'patient_id': user.get('last_patient_id', ''),
+                    'patient_name': user.get('last_patient_name', ''),
                     'data': { 'sagittal': saved_result_sagittal },
                     'created_at': datetime.datetime.now(datetime.timezone.utc)
                 }
