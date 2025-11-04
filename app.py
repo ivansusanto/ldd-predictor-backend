@@ -192,7 +192,7 @@ def upload_file():
             dicom_image = pydicom.dcmread(os.path.join(dicom_path, file_name), force=True)
 
             patient_id = dicom_image.get("PatientID", "")
-            patient_name = str(dicom_image.get("PatientName", ""))
+            patient_name = str(dicom_image.get("PatientName", "")).upper()
 
             desc = dicom_image.get("SeriesDescription", "").lower()
             modality = dicom_image.get("Modality", "")
